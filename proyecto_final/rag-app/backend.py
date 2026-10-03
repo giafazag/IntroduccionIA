@@ -1,28 +1,28 @@
 import os
 from fastapi import FastAPI, UploadFile, File, Form
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import chromadb
 from pypdf import PdfReader
 
-# Configura tu API Key de Google AI
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "AQ.Ab8RN6JnxOAsHqoN-cyBu5Kl5AnNNQ_cy8Lg8s274PvXFaGtVg")
-genai.configure(api_key=GOOGLE_API_KEY)
+# Inicializa el nuevo cliente oficial de Google GenAI
+# Lee automáticamente la variable de entorno GEMINI_API_KEY o GOOGLE_API_KEY
+client = genai.Client()
 
-app = FastAPI(title="RAG Backend API")
+app = FastAPI(title="RAG Backend API (Actualizado)")
 
 # Inicializar cliente de ChromaDB persistente
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
-# Usamos un modelo nativo de embeddings para Chroma o registramos el comportamiento
 collection = chroma_client.get_or_create_collection(name="rag_documents")
 
 def get_google_embedding(text: str):
-    """Genera embeddings usando la API oficial de Google GenAI."""
-    response = genai.embed_content(
-        model="models/text-embedding-004",
+    """Genera embeddings usando el nuevo SDK google-genai."""
+    response = client.models.embed_content(
+        model="text-embedding-004",
         contents=text,
-        task_type="retrieval_document"
     )
-    return response['embedding']
+    # El nuevo SDK devuelve una estructura de objetos, accedemos mediante atributos
+    return response.embeddings[0].values
 
 def split_text(text: str, chunk_size: int = 1000, overlap: int = 200):
     """Divide el texto en fragmentos (chunks) con solape."""
@@ -46,11 +46,10 @@ async def upload_document(file: UploadFile = File(...)):
                 full_text += text + "\n"
         
         if not full_text.strip():
-            return {"status": "error", "message": "El documento está vacío o no se pudo extraer texto."}
+            return {"status": "error", "message": "El documento está vacío."}
         
         chunks = split_text(full_text)
         
-        # Guardar fragmentos y embeddings en ChromaDB
         for i, chunk in enumerate(chunks):
             embedding = get_google_embedding(chunk)
             chunk_id = f"{file.filename}_chunk_{i}"
@@ -68,26 +67,21 @@ async def upload_document(file: UploadFile = File(...)):
 
 @app.post("/query")
 async def query_rag(question: str = Form(...)):
-    """Endpoint para consultar al sistema RAG."""
+    """Endpoint para consultar al sistema RAG usando el nuevo SDK."""
     try:
-        # 1. Obtener embedding de la pregunta de consulta
-        query_response = genai.embed_content(
-            model="models/text-embedding-004",
-            contents=question,
-            task_type="retrieval_query"
-        )
-        query_embedding = query_response['embedding']
+        # 1. Obtener embedding de la pregunta
+        query_embedding = get_google_embedding(question)
         
-        # 2. Recuperar los fragmentos más relevantes de ChromaDB (k=3)
+        # 2. Recuperar los fragmentos de ChromaDB
         results = collection.query(
             query_embeddings=[query_embedding],
             n_results=3
         )
         
-        retrieved_docs = results.get("documents", [[]])[0]
-        context = "\n---\n".join(retrieved_docs) if retrieved_docs else "No se encontró contexto relevante."
+        retrieved_docs = results.get("documents", [[]])
+        context = "\n---\n".join(retrieved_docs[0]) if retrieved_docs and retrieved_docs[0] else "No hay contexto."
         
-        # 3. Generar la respuesta usando Gemini aumentándola con el contexto
+        # 3. Generar la respuesta usando Gemini 2.5 o 1.5 con el nuevo cliente
         prompt = f"""
         Eres un asistente inteligente. Responde a la pregunta del usuario utilizando únicamente el contexto provisto a continuación. 
         Si el contexto no contiene la respuesta, di que no posees la información suficiente.
@@ -99,8 +93,11 @@ async def query_rag(question: str = Form(...)):
         Respuesta:
         """
         
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        llm_response = model.generate_content(prompt)
+        # Se recomienda usar 'gemini-2.5-flash' o 'gemini-1.5-flash'
+        llm_response = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=prompt,
+        )
         
         return {
             "status": "success",
