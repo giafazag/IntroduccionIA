@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+streamlit
+chromadb
+google-generativeai
+pypdf
+requests
