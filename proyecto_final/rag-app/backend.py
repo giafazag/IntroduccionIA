@@ -18,7 +18,7 @@ collection = chroma_client.get_or_create_collection(name="rag_documents")
 def get_google_embedding(text: str):
     """Genera embeddings usando el nuevo SDK google-genai."""
     response = client.models.embed_content(
-        model="text-embedding-004",
+        model="gemini-embedding-001", 
         contents=text,
     )
     # El nuevo SDK devuelve una estructura de objetos, accedemos mediante atributos
