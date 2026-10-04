@@ -93,15 +93,15 @@ async def query_rag(question: str = Form(...)):
         Respuesta:
         """
         
-        llm_response = client.models.generate_content(
+        interaction = client.interactions.create(
             model='gemini-3.8-flash',    # <-- Nombre de modelo actualizado
-            contents=prompt,
+            input=prompt,
         )
         
         return {
             "status": "success",
-            "answer": llm_response.text,
-            "sources": results.get("metadatas", [[]])[0]
+            "answer": interaction.output_text,
+            "sources": results.get("metadatas", [[]])
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
