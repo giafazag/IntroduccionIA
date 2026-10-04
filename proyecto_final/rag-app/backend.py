@@ -94,7 +94,7 @@ async def query_rag(question: str = Form(...)):
         """
         
         llm_response = client.models.generate_content(
-            model='gemini-2.5-flash',    # <-- Nombre de modelo actualizado
+            model='gemini-3.8-flash',    # <-- Nombre de modelo actualizado
             contents=prompt,
         )
         
