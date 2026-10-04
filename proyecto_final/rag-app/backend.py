@@ -93,9 +93,8 @@ async def query_rag(question: str = Form(...)):
         Respuesta:
         """
         
-        # Se recomienda usar 'gemini-2.5-flash' o 'gemini-1.5-flash'
         llm_response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.5-flash',    # <-- Nombre de modelo actualizado
             contents=prompt,
         )
         
