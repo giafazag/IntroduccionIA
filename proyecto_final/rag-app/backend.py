@@ -76,8 +76,19 @@ async def query_rag(question: str = Form(...)):
         results = collection.query(
             query_embeddings=[query_embedding],
             n_results=3
+            include=["documents", "metadatas", "distances"] # <- Pedimos las distancias
         )
+        # Extraer la distancia del fragmento más cercano (el primero)
+        distances = results.get("distances", [[]])[0]
         
+        # Si la distancia del fragmento más relevante es muy alta, 
+        # significa que no hay información relacionada en la base de datos.
+        if distances and distances[0] > 0.75:  # Puedes ajustar este umbral (0.0 idéntico, 1.0 opuesto)
+            return {
+                "status": "success",
+                "answer": "Lo siento, no encontré información relacionada con tu pregunta en los documentos indexados.",
+                "sources": []
+            }
         retrieved_docs = results.get("documents", [[]])
         context = "\n---\n".join(retrieved_docs[0]) if retrieved_docs and retrieved_docs[0] else "No hay contexto."
         
