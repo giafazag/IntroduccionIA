@@ -50,7 +50,7 @@ if user_query := st.chat_input("Hazle una pregunta a tus documentos vectorizados
                 response = requests.post(f"{BACKEND_URL}/query", data={"question": user_query})
                 res_data = response.json()
                 
-                               if res_data.get("status") == "success":
+                if res_data.get("status") == "success":
                     answer = res_data.get("answer")
                     st.markdown(answer)
                     
