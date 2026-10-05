@@ -56,7 +56,7 @@ if user_query := st.chat_input("Hazle una pregunta a tus documentos vectorizados
                     
                     # Mostrar fuentes de manera discreta si existen
                     sources = res_data.get("sources", [])
-                    if sources:
+                    if sources and "no encuentro esa información" not in answer.lower()::
                         source_files = list(set([s['source'] for s in sources]))
                         st.caption(f"📚 *Fuentes consultadas: {', '.join(source_files)}*")
                         
