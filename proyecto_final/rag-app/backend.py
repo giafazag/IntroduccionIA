@@ -75,7 +75,7 @@ async def query_rag(question: str = Form(...)):
         # 2. Recuperar los fragmentos de ChromaDB
         results = collection.query(
             query_embeddings=[query_embedding],
-            n_results=3
+            n_results=3,
             include=["documents", "metadatas", "distances"] # <- Pedimos las distancias
         )
         # Extraer la distancia del fragmento más cercano (el primero)
