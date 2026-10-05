@@ -5,7 +5,7 @@ import requests
 BACKEND_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(page_title="RAG System (Google AI + ChromaDB)", layout="wide")
-st.title("🤖 Sistema RAG Corporativo")
+st.title("🤖 Sistema RAG")
 
 # Barra lateral para la carga de documentos
 with st.sidebar:
