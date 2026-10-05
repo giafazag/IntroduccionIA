@@ -5,7 +5,7 @@ import requests
 BACKEND_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(page_title="RAG System (Google AI + ChromaDB)", layout="wide")
-st.title("🤖 Sistema RAG")
+st.title("🤖 Sistema RAG Corporativo")
 
 # Barra lateral para la carga de documentos
 with st.sidebar:
@@ -54,10 +54,9 @@ if user_query := st.chat_input("Hazle una pregunta a tus documentos vectorizados
                     answer = res_data.get("answer")
                     st.markdown(answer)
                     
-                    # Mostrar fuentes SOLO si hay fuentes reales en la respuesta
+                    # Mostrar fuentes de manera limpia si existen datos reales
                     sources = res_data.get("sources", [])
-                    # Evitamos mostrar fuentes si la respuesta indica que no sabe o si la lista está vacía
-                    if sources and "no encuentro esa información" not in answer.lower():
+                    if sources:
                         source_files = list(set([s['source'] for s in sources if 'source' in s]))
                         if source_files:
                             st.caption(f"📚 *Fuentes consultadas: {', '.join(source_files)}*")
