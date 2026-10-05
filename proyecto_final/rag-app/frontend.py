@@ -50,15 +50,17 @@ if user_query := st.chat_input("Hazle una pregunta a tus documentos vectorizados
                 response = requests.post(f"{BACKEND_URL}/query", data={"question": user_query})
                 res_data = response.json()
                 
-                if res_data.get("status") == "success":
+                               if res_data.get("status") == "success":
                     answer = res_data.get("answer")
                     st.markdown(answer)
                     
-                    # Mostrar fuentes de manera discreta si existen
+                    # Mostrar fuentes SOLO si hay fuentes reales en la respuesta
                     sources = res_data.get("sources", [])
-                    if sources and "no encuentro esa información" not in answer.lower()::
-                        source_files = list(set([s['source'] for s in sources]))
-                        st.caption(f"📚 *Fuentes consultadas: {', '.join(source_files)}*")
+                    # Evitamos mostrar fuentes si la respuesta indica que no sabe o si la lista está vacía
+                    if sources and "no encuentro esa información" not in answer.lower():
+                        source_files = list(set([s['source'] for s in sources if 'source' in s]))
+                        if source_files:
+                            st.caption(f"📚 *Fuentes consultadas: {', '.join(source_files)}*")
                         
                     st.session_state.messages.append({"role": "assistant", "content": answer})
                 else:
